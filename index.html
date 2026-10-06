@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ja" data-season="autumn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>鬼のタスク管理</title>
+<meta name="theme-color" content="#c7471b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="鬼タスク">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yomogi&family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ===== seasons: each season only defines its own palette ===== */
+html[data-season="spring"]{--a:#cc3f69;--s-bg:#fff1f4;--s-panel:#fffafb;--s-line:#f5cfdb;--s-paper:#fff8fa;--s-pl:#5b3a46;--s-row:#e8bccb;--s-rule:#eecbd6;--s-ink:#3d2b33;--s-soft:#fde0e8}
+html[data-season="summer"]{--a:#0a7fae;--s-bg:#e8f7fb;--s-panel:#f7fdff;--s-line:#bde3ee;--s-paper:#f6fcff;--s-pl:#23485b;--s-row:#a5d2e0;--s-rule:#c3e2ec;--s-ink:#1f3440;--s-soft:#d3eef7}
+html[data-season="autumn"]{--a:#c7471b;--s-bg:#fff1dc;--s-panel:#fffaf0;--s-line:#f0d3a8;--s-paper:#fff9ee;--s-pl:#4b3425;--s-row:#deb98f;--s-rule:#ebd2b0;--s-ink:#3a281c;--s-soft:#fddcc6}
+html[data-season="oni"]{--a:#c8321e;--s-bg:#ece7df;--s-panel:#f6f2ec;--s-line:#d6cec2;--s-paper:#e7ecee;--s-pl:#2f3a3f;--s-row:#9aa5aa;--s-rule:#a9b4b8;--s-ink:#3b3b3b;--s-soft:#f3d9d3}
+html[data-season="winter"]{--a:#3f64c4;--s-bg:#ecf3fb;--s-panel:#fbfdff;--s-line:#cbd9ec;--s-paper:#f8fbff;--s-pl:#2c3e5a;--s-row:#b5c6dd;--s-rule:#cddaea;--s-ink:#22304a;--s-soft:#dbe6f8}
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:var(--s-bg);
+  --ink:var(--s-ink);
+  --muted:color-mix(in srgb,var(--s-ink) 62%,var(--s-panel));
+  --paper:var(--s-paper);
+  --paper-line:var(--s-pl);
+  --paper-rule:var(--s-rule);
+  --row-line:var(--s-row);
+  --paper-sub:color-mix(in srgb,var(--s-ink) 62%,var(--s-paper));
+  --oni:var(--a);
+  --oni-soft:var(--s-soft);
+  --panel:var(--s-panel);
+  --panel-line:var(--s-line);
+  --chip:#fff;
+  --pencil:var(--s-ink);
+  --shadow:color-mix(in srgb,var(--s-pl) 24%,transparent);
+  --hand:'Yomogi','Klee One','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif;
+  --ui:'Zen Maru Gothic','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:color-mix(in srgb,var(--a) 9%,#17181b);
+    --ink:#f2ede7;
+    --muted:#a8a29a;
+    --paper:color-mix(in srgb,var(--s-paper) 90%,#6b6b6b);
+    --oni:color-mix(in srgb,var(--a) 78%,#fff);
+    --oni-soft:color-mix(in srgb,var(--a) 24%,#1c1d21);
+    --panel:color-mix(in srgb,var(--a) 8%,#202226);
+    --panel-line:color-mix(in srgb,var(--a) 20%,#34373d);
+    --chip:color-mix(in srgb,var(--a) 8%,#2a2d33);
+    --shadow:rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+    --bg:color-mix(in srgb,var(--a) 9%,#17181b);
+    --ink:#f2ede7;
+    --muted:#a8a29a;
+    --paper:color-mix(in srgb,var(--s-paper) 90%,#6b6b6b);
+    --oni:color-mix(in srgb,var(--a) 78%,#fff);
+    --oni-soft:color-mix(in srgb,var(--a) 24%,#1c1d21);
+    --panel:color-mix(in srgb,var(--a) 8%,#202226);
+    --panel-line:color-mix(in srgb,var(--a) 20%,#34373d);
+    --chip:color-mix(in srgb,var(--a) 8%,#2a2d33);
+    --shadow:rgba(0,0,0,.5);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,var(--bg) 0%,color-mix(in srgb,var(--a) 8%,var(--bg)) 100%);color:var(--ink);font-family:var(--ui);font-weight:500;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:760px;margin:0 auto;padding:14px 10px 40px;position:relative;z-index:1}
+
+header{display:flex;align-items:center;gap:10px;padding:4px 6px 12px}
+header h1{margin:0;font-size:1.25rem;font-weight:700;letter-spacing:.04em}
+header .oni{font-size:1.6rem;line-height:1}
+header .date{margin-left:auto;font-family:var(--hand);font-size:1.05rem;color:var(--oni)}
+
+/* two pages */
+.spread{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.page{
+  background:var(--paper);border-radius:14px;padding:10px 8px 12px 8px;
+  box-shadow:0 2px 0 var(--shadow),0 10px 18px -12px var(--shadow);
+  color:var(--pencil);min-width:0;position:relative;
+}
+.page-head{display:flex;justify-content:space-between;align-items:baseline;gap:4px;padding:0 4px 4px}
+.page-head b{font-family:var(--hand);font-size:clamp(.95rem,4.4vw,1.35rem);font-weight:400;letter-spacing:.01em}
+.page-head span{font-family:var(--hand);font-size:clamp(.72rem,3.1vw,.95rem);white-space:nowrap}
+.page-label{font-size:.68rem;color:var(--paper-sub);padding:0 4px 6px}
+
+.rows{margin:0;padding:0;list-style:none}
+.row{
+  position:relative;display:grid;grid-template-columns:1.2em 1fr 30px;align-items:center;
+  min-height:44px;border-bottom:2.5px solid var(--row-line);
+  font-family:var(--hand);font-size:clamp(.9rem,4.2vw,1.2rem);
+  -webkit-tap-highlight-color:transparent;
+}
+.row .no{font-size:.62em;text-align:center;border-right:1.5px dashed var(--paper-rule);align-self:stretch;display:flex;align-items:center;justify-content:center}
+.row .txt{position:relative;padding:0 4px 0 6px;line-height:1.2;overflow-wrap:anywhere;min-width:0;text-align:left;background:none;border:0;display:block;font-family:inherit;font-size:inherit;color:inherit;height:100%;min-height:44px}
+.row .txt span{position:relative;display:inline-block;padding:2px 0}
+.row .box{display:flex;align-items:center;justify-content:center;position:relative;width:30px;height:100%;background:none;border:0;padding:0}
+.row .box i{display:block;width:13px;height:13px;border:2px solid var(--paper-line);border-radius:2px}
+.row.empty .txt{cursor:default}
+
+/* pencil strike */
+.row.done .txt span::after{
+  content:"";position:absolute;left:-4px;right:-4px;top:54%;height:2.5px;background:var(--pencil);
+  border-radius:2px;transform:rotate(-1.1deg);transform-origin:left center;opacity:.85
+}
+.row.done .txt{color:var(--paper-sub)}
+.row.fresh.done .txt span::after{animation:strike .28s ease-out both}
+@keyframes strike{from{transform:rotate(-1.1deg) scaleX(0)}to{transform:rotate(-1.1deg) scaleX(1)}}
+.row .stamp{width:26px;height:26px;color:var(--oni);transform:rotate(-8deg)}
+.row.fresh .stamp{animation:stamp .34s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stamp{from{transform:rotate(-30deg) scale(2.2);opacity:0}to{transform:rotate(-8deg) scale(1);opacity:1}}
+
+.mini{position:absolute;left:1.2em;top:3px;bottom:3px;display:none}
+.row .tools{position:absolute;right:30px;top:50%;transform:translateY(-50%);display:flex;gap:2px}
+.tool{
+  width:30px;height:30px;border-radius:50%;border:1.5px solid var(--paper-line);background:var(--paper);
+  font-family:var(--ui);font-size:.8rem;line-height:1;display:flex;align-items:center;justify-content:center;color:var(--pencil);padding:0
+}
+.tool.carry{width:auto;padding:0 8px;border-radius:15px;font-size:.7rem;border-color:var(--oni);color:var(--oni);background:var(--paper)}
+.tool svg{display:block}
+.row.has-tools .txt{padding-right:40px}
+.row.has-tools .tool{width:34px;height:34px;border:0;background:none;border-radius:6px;opacity:.7}
+.row.has-tools .tool:active{opacity:1;color:var(--oni)}
+.row.has-carry .txt{padding-right:58px}
+
+.empty-note{font-family:var(--ui);font-size:.8rem;color:var(--paper-sub);padding:18px 6px;line-height:1.6}
+
+.summary{font-size:.75rem;color:var(--paper-sub);padding:8px 4px 0;display:flex;justify-content:space-between}
+
+/* picker */
+.picker{margin-bottom:14px;background:var(--panel);border:1.5px solid var(--panel-line);border-radius:16px;padding:14px 12px}
+.picker h2{margin:0 0 2px;font-size:1.02rem;font-weight:700}
+.picker p.hint{margin:0 0 10px;font-size:.78rem;color:var(--muted)}
+.chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.chips>.hint{grid-column:1/-1}
+.chip{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:4px 6px;border-radius:22px;
+  background:var(--chip);border:1.5px solid var(--panel-line);font-size:.88rem;line-height:1.25;text-align:center;
+  min-width:0;overflow-wrap:anywhere;
+  transition:transform .08s ease;
+}
+.chip:active{transform:scale(.96)}
+.chip.on{background:var(--oni-soft);border-color:var(--oni);color:var(--oni)}
+.chip.on::before{content:"✓";font-weight:700}
+.chip .x{flex:none;width:20px;height:20px;border-radius:50%;background:var(--oni);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.8rem;line-height:1}
+.sub{display:flex;justify-content:space-between;align-items:center;margin:14px 0 8px}
+.sub h3{margin:0;font-size:.88rem;font-weight:700}
+.link{background:none;border:0;color:var(--muted);font-size:.8rem;min-height:36px;padding:0 6px;text-decoration:underline;text-underline-offset:3px}
+.link.active{color:var(--oni)}
+
+.free{display:flex;gap:8px}
+.free input[type=text]{
+  flex:1;min-width:0;min-height:48px;border-radius:12px;border:1.5px solid var(--panel-line);background:var(--chip);color:var(--ink);
+  padding:0 12px;font:inherit;font-size:1rem
+}
+.free input[type=text]:focus-visible,button:focus-visible,.row .txt:focus-visible,.row .box:focus-visible{outline:3px solid var(--oni);outline-offset:2px}
+.add{min-height:48px;padding:0 18px;border-radius:12px;border:0;background:var(--oni);color:#fff;font-weight:700}
+.reg{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.82rem;color:var(--muted);min-height:36px}
+.reg input{width:20px;height:20px;accent-color:var(--oni)}
+
+footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:.76rem;color:var(--muted);padding:0 4px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:20px;font-size:.85rem;opacity:0;pointer-events:none;transition:.25s;max-width:90%}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+/* tabs */
+.tabs{display:flex;gap:6px;background:var(--panel);border:1.5px solid var(--panel-line);border-radius:14px;padding:4px;margin:0 0 12px}
+.tabs button{flex:1;min-height:44px;border:0;border-radius:10px;background:none;font-weight:700;font-size:.95rem;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--oni);color:#fff}
+[hidden]{display:none!important}
+
+/* stats */
+.seg{display:flex;gap:6px}
+.seg button{min-height:40px;padding:0 18px;border-radius:20px;border:1.5px solid var(--panel-line);background:var(--chip);font-weight:700;font-size:.9rem}
+.seg button[aria-pressed="true"]{background:var(--oni-soft);border-color:var(--oni);color:var(--oni)}
+.range{display:flex;align-items:center;justify-content:space-between;margin:12px 0}
+.range .nav{width:44px;height:44px;border-radius:50%;border:1.5px solid var(--panel-line);background:var(--chip);font-size:1.1rem}
+.range .nav:disabled{opacity:.35;cursor:default}
+.range b{font-family:var(--hand);font-size:1.25rem;font-weight:400}
+.oni-says{display:flex;gap:10px;align-items:center;background:var(--oni-soft);border:1.5px solid var(--oni);border-radius:16px;padding:12px 14px;margin-bottom:12px;font-size:.95rem}
+.oni-says .face{font-size:1.8rem;line-height:1}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.kpi{background:var(--panel);border:1.5px solid var(--panel-line);border-radius:14px;padding:10px 6px;text-align:center}
+.kpi b{display:block;font-family:var(--hand);font-size:1.7rem;font-weight:400;line-height:1.2;color:var(--oni)}
+.kpi span{font-size:.72rem;color:var(--muted)}
+.card{background:var(--panel);border:1.5px solid var(--panel-line);border-radius:16px;padding:12px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:.92rem}
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:140px}
+.bar{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px;min-width:0}
+.bar .col{width:100%;max-width:34px;border:2px solid var(--paper-line);border-radius:5px 5px 2px 2px;background:transparent;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;min-height:3px}
+.bar .col i{display:block;background:var(--oni);width:100%}
+.bar .n{font-size:.7rem;color:var(--muted);height:1em}
+.bar .d{font-family:var(--hand);font-size:.85rem}
+.bar .d.sun{color:var(--oni)}
+.bar .st{width:20px;height:20px;color:var(--oni);margin-bottom:2px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .wd{text-align:center;font-size:.7rem;color:var(--muted);padding-bottom:2px}
+.cell{aspect-ratio:1/1.05;border-radius:8px;border:1.5px solid var(--panel-line);background:var(--chip);padding:3px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;font-size:.7rem;min-width:0}
+.cell.blank{border:0;background:none}
+.cell.future{opacity:.4}
+.cell.today{border-color:var(--oni);border-width:2px}
+.cell .dn{font-family:var(--hand);font-size:.8rem;align-self:flex-start;line-height:1}
+.cell .st{width:70%;max-width:26px;color:var(--oni)}
+.cell .fr{font-size:.66rem;color:var(--muted)}
+.rank{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.rank li{display:grid;grid-template-columns:1.4em 1fr auto;gap:8px;align-items:center;font-size:.92rem}
+.rank .meter{grid-column:2 / 4;height:8px;border-radius:4px;background:var(--chip);border:1px solid var(--panel-line);overflow:hidden}
+.rank .meter i{display:block;height:100%;background:var(--oni)}
+.rank .cnt{font-family:var(--hand);color:var(--oni)}
+.none{font-size:.85rem;color:var(--muted);line-height:1.6;padding:6px 2px}
+.foot-btns{display:flex;gap:4px}
+.link:disabled{opacity:.35;cursor:default;text-decoration:none}
+/* share */
+.sharebar{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.sharebtns{display:flex;gap:8px}
+.add.ghost{background:var(--chip);color:var(--oni);border:1.5px solid var(--oni)}
+.seg button:disabled{opacity:.4;cursor:default}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.78);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.overlay img{max-width:100%;max-height:68vh;border-radius:10px;background:#fff}
+.overlay p{margin:0;color:#fff;font-size:.88rem;text-align:center;line-height:1.6}
+.overlay .add{min-width:140px}
+/* fold */
+.fold{border-top:1.5px solid var(--panel-line);margin-top:14px}
+.fold summary{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;font-weight:700;font-size:.92rem;padding:0 2px}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary::after{content:"";flex:none;width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.fold[open] summary{color:var(--oni)}
+.fold[open] summary::after{transform:rotate(-135deg) translate(-2px,0);border-color:var(--oni)}
+.fold summary:focus-visible{outline:3px solid var(--oni);outline-offset:2px;border-radius:8px}
+.fold-body{padding:2px 2px 8px}
+/* backup */
+.bk{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.bk .add{flex:1;min-width:130px;display:inline-flex;align-items:center;justify-content:center;text-align:center;font-size:.85rem}
+.filebtn{cursor:pointer}
+#bkText{width:100%;border-radius:12px;border:1.5px solid var(--panel-line);background:var(--chip);color:var(--ink);padding:10px 12px;font:inherit;font-size:.8rem;margin:0 0 10px;resize:vertical}
+#bkText:focus-visible,.filebtn:focus-within{outline:3px solid var(--oni);outline-offset:2px}
+/* hero + seasonal decoration */
+.hero{position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;padding:12px 16px;margin:0 0 12px;border-radius:20px;
+  background:linear-gradient(115deg,var(--oni-soft) 0%,var(--panel) 100%);border:1.5px solid var(--panel-line)}
+.hero .kanji{font-family:var(--hand);font-size:3rem;line-height:1;color:var(--oni)}
+.hero-title{font-weight:700;font-size:1rem}
+.hero-msg{font-size:.8rem;color:var(--muted);margin-top:2px;line-height:1.5}
+.hero-emoji{margin-left:auto;font-size:2rem;line-height:1}
+.fall{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:5}
+.fall span{position:absolute;top:0;left:var(--x);font-size:var(--s);opacity:var(--o);animation:fall var(--d) linear var(--dl) infinite;will-change:transform}
+.fall.up span{top:auto;bottom:0;animation-name:rise}
+@keyframes fall{0%{transform:translate3d(0,-12vh,0) rotate(0)}50%{transform:translate3d(var(--sw),55vh,0) rotate(180deg)}100%{transform:translate3d(0,112vh,0) rotate(360deg)}}
+@keyframes rise{0%{transform:translate3d(0,12vh,0)}50%{transform:translate3d(var(--sw),-55vh,0)}100%{transform:translate3d(0,-112vh,0)}}
+.seg.five{gap:4px}
+.seg.five button{flex:1;padding:0 4px;min-width:0}
+@media (prefers-reduced-motion: reduce){.fall{display:none}}
+@media (prefers-reduced-motion: reduce){
+  .row.fresh.done .txt span::after,.row.fresh .stamp{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="oni" aria-hidden="true">👹</span>
+    <h1>鬼のタスク管理</h1>
+    <span class="date" id="todayLabel"></span>
+  </header>
+
+  <section class="hero" aria-label="季節のひとこと">
+    <span class="kanji" id="heroKanji" aria-hidden="true">秋</span>
+    <div class="hero-text">
+      <div class="hero-title" id="heroTitle"></div>
+      <div class="hero-msg" id="heroMsg"></div>
+    </div>
+    <span class="hero-emoji" id="heroEmoji" aria-hidden="true">🍁</span>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="表示切り替え">
+    <button type="button" role="tab" id="tabToday" data-view="today" aria-selected="true">今日</button>
+    <button type="button" role="tab" id="tabStats" data-view="stats" aria-selected="false">成果</button>
+  </nav>
+
+  <main id="viewToday">
+
+    <section class="picker" aria-labelledby="pickTitle">
+      <h2 id="pickTitle">今日のタスクを選ぶ</h2>
+      <p class="hint">タップで今日のページへ。もう一度タップで外せます。</p>
+      <div class="chips" id="chips"></div>
+
+      <details class="fold" id="foldMore">
+        <summary>✏️ 自由に書く・登録リストを編集</summary>
+        <div class="fold-body">
+          <div class="sub"><h3>季節のデザイン</h3></div>
+          <div class="seg five" role="group" aria-label="季節を選ぶ">
+            <button type="button" data-sea="auto" aria-pressed="true">自動</button>
+            <button type="button" data-sea="spring" aria-pressed="false">春</button>
+            <button type="button" data-sea="summer" aria-pressed="false">夏</button>
+            <button type="button" data-sea="autumn" aria-pressed="false">秋</button>
+            <button type="button" data-sea="winter" aria-pressed="false">冬</button>
+            <button type="button" data-sea="oni" aria-pressed="false">鬼</button>
+          </div>
+          <label class="reg"><input type="checkbox" id="fxCheck" checked> 舞い散る演出（落ち葉・花びらなど）</label>
+
+          <div class="sub"><h3>自由に書く</h3></div>
+          <div class="free">
+            <input type="text" id="freeInput" placeholder="例：ブログ記事を書く" enterkeyhint="done" autocomplete="off" aria-label="自由に書くタスク">
+            <button class="add" id="freeAdd" type="button">追加</button>
+          </div>
+          <label class="reg"><input type="checkbox" id="regCheck"> 登録リストにも入れる</label>
+
+          <div class="sub">
+            <h3>登録リスト</h3>
+            <button class="link" id="editReg" type="button">編集</button>
+          </div>
+          <p class="hint" id="editHint" style="display:none;margin:0">上のチップの × をタップすると登録リストから消えます（今日のページには影響しません）。</p>
+
+          <div class="sub"><h3>バックアップ</h3></div>
+          <p class="hint" style="margin:0 0 8px">機種変更やデータ移行のときに使います。</p>
+          <div class="bk">
+            <button class="add ghost" id="bkCopy" type="button">コピー</button>
+            <button class="add ghost" id="bkFile" type="button">ファイルに保存</button>
+          </div>
+          <textarea id="bkText" rows="4" placeholder="ここにバックアップを貼り付けて「復元する」" aria-label="バックアップの内容" spellcheck="false"></textarea>
+          <div class="bk">
+            <label class="add ghost filebtn">ファイルから読み込み<input type="file" id="bkPick" accept=".json,application/json" hidden></label>
+            <button class="add" id="bkRestore" type="button">復元する</button>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <div class="spread" id="spread"></div>
+
+    <div class="sharebar" aria-label="画像として出力">
+      <div class="seg" role="group" aria-label="画像の内容">
+        <button type="button" data-img="today" aria-pressed="false">今日だけ</button>
+        <button type="button" data-img="both" aria-pressed="true">昨日と並べる</button>
+      </div>
+      <div class="sharebtns">
+        <button class="add" id="copyImg" type="button">画像をコピー</button>
+        <button class="add ghost" id="shareImg" type="button">共有</button>
+      </div>
+    </div>
+  </main>
+
+  <main id="viewStats" hidden>
+    <div class="seg" role="group" aria-label="期間">
+      <button type="button" data-period="week" aria-pressed="true">週</button>
+      <button type="button" data-period="month" aria-pressed="false">月</button>
+    </div>
+    <div class="range">
+      <button class="nav" id="rangePrev" type="button" aria-label="前の期間">‹</button>
+      <b id="rangeLabel"></b>
+      <button class="nav" id="rangeNext" type="button" aria-label="次の期間">›</button>
+    </div>
+    <div id="statsBody"></div>
+  </main>
+
+  <footer>
+    <span>データはこの端末のブラウザに保存されます</span>
+    <span class="foot-btns">
+      <button class="link" id="prevDay" type="button">試す：1日戻す</button>
+      <button class="link" id="nextDay" type="button">1日進める</button>
+    </span>
+  </footer>
+</div>
+<div class="fall" id="fall" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  const KEY = 'oni-task-v1';
+  const WD = ['日','月','火','水','木','金','土'];
+  const DEFAULT_REG = ['朝活','朝さんぽ','クライアント','サロン関係','Xpost','インプット','音声配信','メルマガ','お昼寝','請求書作成'];
+  const MIN_ROWS = 10;
+
+  let state = load();
+  let lastToggled = null;
+  let editMode = false;
+
+  function uid(){ return Math.random().toString(36).slice(2,9); }
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function keyOf(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function dateOf(k){ const [y,m,d]=k.split('-').map(Number); return new Date(y,m-1,d); }
+  function label(k){ const d=dateOf(k); return (d.getMonth()+1)+'/'+d.getDate()+'('+WD[d.getDay()]+')'; }
+  function todayKey(){ const d=new Date(); d.setDate(d.getDate()+(state.offset||0)); return keyOf(d); }
+  function esc(s){ return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function load(){
+    let s=null;
+    try{ const raw=localStorage.getItem(KEY); if(raw) s=JSON.parse(raw); }catch(e){}
+    if(!s || typeof s!=='object'){
+      s={registered:DEFAULT_REG.slice(), days:{}, offset:0, seeded:false, season:'auto', fx:true};
+    }
+    if(!Array.isArray(s.registered)) s.registered=DEFAULT_REG.slice();
+    if(!s.days) s.days={};
+    if(!s.offset) s.offset=0;
+    if(!s.season) s.season='auto';
+    if(s.fx===undefined) s.fx=true;
+    return s;
+  }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+  // First launch: show a sample "yesterday" so the layout is clear
+  (function seed(){
+    if(state.seeded) return;
+    const d=new Date(); d.setDate(d.getDate()-1);
+    const k=keyOf(d);
+    if(!state.days[k]){
+      state.days[k]=['朝さんぽ','音声配信','Xpost','インプット'].map(t=>({id:uid(),text:t,done:false}));
+    }
+    state.seeded=true; save();
+  })();
+
+  function prevKey(tk){
+    const keys=Object.keys(state.days).filter(k=>k<tk && state.days[k].length).sort();
+    return keys.length?keys[keys.length-1]:null;
+  }
+  function todayList(){ const k=todayKey(); if(!state.days[k]) state.days[k]=[]; return state.days[k]; }
+
+  const stampSVG = '<svg class="stamp" viewBox="0 0 40 40" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">'
+    + [0,45,90,135,180,225,270,315].map(a=>'<circle cx="20" cy="9.5" r="6" transform="rotate('+a+' 20 20)"/>').join('')
+    + '<path d="M20 20c0-2 2.6-2.6 3.4-.8.9 2-1.2 4.2-3.6 3.6-2.9-.7-3.6-4.6-1.2-6.8" stroke-width="2"/></svg>';
+
+  const trashSVG='<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4.5h6V7"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg>';
+  function rowHTML(item, idx, page){
+    const n = idx+1;
+    if(!item){
+      return '<li class="row empty"><span class="no">'+n+'</span><span class="txt"></span><span class="box"><i></i></span></li>';
+    }
+    const fresh = lastToggled===item.id ? ' fresh' : '';
+    const done = item.done ? ' done' : '';
+    let tools='', cls='';
+    if(page==='today'){
+      tools='<span class="tools"><button class="tool" type="button" data-act="remove" data-id="'+item.id+'" aria-label="「'+esc(item.text)+'」を今日のページから外す">'+trashSVG+'</button></span>';
+      cls=' has-tools';
+    } else if(!item.done){
+      tools='<span class="tools"><button class="tool carry" type="button" data-act="carry" data-id="'+item.id+'" aria-label="「'+esc(item.text)+'」を今日へ持ち越す">今日へ</button></span>';
+      cls=' has-carry';
+    }
+    return '<li class="row'+done+fresh+cls+'">'
+      + '<span class="no">'+n+'</span>'
+      + '<button class="txt" type="button" data-act="toggle" data-page="'+page+'" data-id="'+item.id+'" aria-pressed="'+(item.done?'true':'false')+'"><span>'+esc(item.text)+'</span></button>'
+      + tools
+      + '<button class="box" type="button" data-act="toggle" data-page="'+page+'" data-id="'+item.id+'" aria-label="'+(item.done?'完了を取り消す':'完了にする')+'">'
+      + (item.done ? stampSVG : '<i></i>') + '</button>'
+      + '</li>';
+  }
+
+  function pageHTML(kind, k, list){
+    const total=Math.max(MIN_ROWS, list.length);
+    let rows='';
+    for(let i=0;i<total;i++) rows+=rowHTML(list[i],i,kind);
+    const doneN=list.filter(t=>t.done).length;
+    let head='<div class="page-head"><b>To Do List</b><span>'+(k?label(k):'')+'</span></div>'
+      + '<div class="page-label">'+(kind==='today'?'今日':'昨日（やったものをタップ）')+'</div>';
+    let body;
+    if(kind==='yesterday' && !k){
+      body='<div class="empty-note">前日のタスクはまだありません。今日のタスクを選んで、明日ここで消し込みましょう。</div><ul class="rows" aria-hidden="true">'+rows+'</ul>';
+    } else {
+      body='<ul class="rows">'+rows+'</ul><div class="summary"><span>'+list.length+'件</span><span>完了 '+doneN+'</span></div>';
+    }
+    return '<section class="page" aria-label="'+(kind==='today'?'今日のタスク':'昨日のタスク')+'">'+head+body+'</section>';
+  }
+
+  function render(){
+    const tk=todayKey();
+    const pk=prevKey(tk);
+    document.getElementById('todayLabel').textContent=label(tk);
+    const today=todayList();
+    const prev=pk?state.days[pk]:[];
+    // left = today, right = yesterday
+    document.getElementById('spread').innerHTML = pageHTML('today',tk,today)+pageHTML('yesterday',pk,prev);
+
+    const chips=document.getElementById('chips');
+    chips.innerHTML=state.registered.map((t,i)=>{
+      const on=today.some(x=>x.text===t);
+      if(editMode) return '<button class="chip" type="button" data-act="delreg" data-i="'+i+'" aria-label="「'+esc(t)+'」を登録から消す">'+esc(t)+'<span class="x">×</span></button>';
+      return '<button class="chip'+(on?' on':'')+'" type="button" data-act="pick" data-i="'+i+'" aria-pressed="'+(on?'true':'false')+'">'+esc(t)+'</button>';
+    }).join('') || '<span class="hint" style="font-size:.8rem;color:var(--muted)">登録リストは空です。下の入力欄から追加できます。</span>';
+
+    document.getElementById('editReg').textContent=editMode?'完了':'編集';
+    document.getElementById('editReg').classList.toggle('active',editMode);
+    document.getElementById('editHint').style.display=editMode?'block':'none';
+    lastToggled=null;
+    if(typeof syncShare==='function') syncShare();
+    if(typeof applySeason==='function') applySeason();
+  }
+
+  function toast(msg){
+    const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+    clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('show'),1800);
+  }
+
+  function addToday(text){
+    text=text.trim(); if(!text) return false;
+    const list=todayList();
+    if(list.some(x=>x.text===text)){ toast('すでに今日のページにあります'); return false; }
+    list.push({id:uid(),text,done:false});
+    return true;
+  }
+
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('[data-act]'); if(!b) return;
+    const act=b.dataset.act;
+    const tk=todayKey(), pk=prevKey(tk);
+
+    if(act==='pick'){
+      const t=state.registered[+b.dataset.i];
+      const list=todayList();
+      const ix=list.findIndex(x=>x.text===t);
+      if(ix>=0) list.splice(ix,1); else list.push({id:uid(),text:t,done:false});
+      save(); render();
+    }
+    else if(act==='delreg'){
+      state.registered.splice(+b.dataset.i,1); save(); render();
+    }
+    else if(act==='toggle'){
+      const list = b.dataset.page==='today' ? todayList() : (pk?state.days[pk]:[]);
+      const it=list.find(x=>x.id===b.dataset.id); if(!it) return;
+      it.done=!it.done; lastToggled=it.done?it.id:null;
+      save(); render();
+    }
+    else if(act==='remove'){
+      const list=todayList(); const ix=list.findIndex(x=>x.id===b.dataset.id);
+      if(ix>=0) list.splice(ix,1); save(); render();
+    }
+    else if(act==='carry'){
+      const it=(pk?state.days[pk]:[]).find(x=>x.id===b.dataset.id); if(!it) return;
+      if(addToday(it.text)){ save(); render(); toast('「'+it.text+'」を今日へ持ち越しました'); }
+    }
+  });
+
+  const input=document.getElementById('freeInput');
+  function submitFree(){
+    const t=input.value.trim(); if(!t) return;
+    if(addToday(t)){
+      if(document.getElementById('regCheck').checked && !state.registered.includes(t)) state.registered.push(t);
+      input.value=''; save(); render(); input.focus();
+    }
+  }
+  document.getElementById('freeAdd').addEventListener('click',submitFree);
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter' && !e.isComposing){ e.preventDefault(); submitFree(); } });
+
+  document.getElementById('editReg').addEventListener('click',()=>{ editMode=!editMode; render(); });
+  document.getElementById('foldMore').addEventListener('toggle',function(){ if(!this.open && editMode){ editMode=false; render(); } });
+  /* ---------- seasons ---------- */
+  const SEASONS={
+    spring:{kanji:'春',name:'桜の季節',msg:'春風に乗って、ひとつずつ前へ。',emoji:'🌸',fall:['🌸','🌸','🌷'],dir:'down'},
+    summer:{kanji:'夏',name:'夏空の季節',msg:'空みたいに軽やかに、今日も一歩。',emoji:'🌻',fall:['🫧','✨','🫧'],dir:'up'},
+    autumn:{kanji:'秋',name:'実りの季節',msg:'今日の収穫は、いくつかな？',emoji:'🍁',fall:['🍁','🍂','🍁','🌰'],dir:'down'},
+    oni:{kanji:'鬼',name:'鬼のモード',msg:'鬼が見ているぞ。今日もやりきれ！',emoji:'👹',fall:[],dir:'down'},
+    winter:{kanji:'冬',name:'雪の季節',msg:'しんしんと、静かに積み上げよう。',emoji:'⛄',fall:['❄️','❄️','✨'],dir:'down'}
+  };
+  function currentSeason(){
+    if(state.season && SEASONS[state.season]) return state.season;
+    const m=dateOf(todayKey()).getMonth()+1;
+    return m>=3&&m<=5?'spring':m>=6&&m<=8?'summer':m>=9&&m<=11?'autumn':'winter';
+  }
+  let fallKey='';
+  function buildFall(season){
+    const box=document.getElementById('fall');
+    const reduce=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const key=season+'|'+(state.fx&&!reduce);
+    if(key===fallKey) return; fallKey=key;
+    box.innerHTML='';
+    if(!state.fx||reduce) return;
+    const sp=SEASONS[season];
+    if(!sp.fall.length) return;
+    box.className='fall'+(sp.dir==='up'?' up':'');
+    for(let i=0;i<10;i++){
+      const el=document.createElement('span');
+      const d=11+Math.random()*10;
+      el.textContent=sp.fall[i%sp.fall.length];
+      el.style.setProperty('--x',(Math.random()*94)+'vw');
+      el.style.setProperty('--s',(14+Math.random()*12)+'px');
+      el.style.setProperty('--o',(.45+Math.random()*.25).toFixed(2));
+      el.style.setProperty('--d',d.toFixed(1)+'s');
+      el.style.setProperty('--dl',(-Math.random()*d).toFixed(1)+'s');
+      el.style.setProperty('--sw',((Math.random()-.5)*16).toFixed(1)+'vw');
+      box.appendChild(el);
+    }
+  }
+  function applySeason(){
+    const season=currentSeason(), sp=SEASONS[season];
+    document.documentElement.setAttribute('data-season',season);
+    document.getElementById('heroKanji').textContent=sp.kanji;
+    document.getElementById('heroTitle').textContent=sp.name;
+    document.getElementById('heroMsg').textContent=sp.msg;
+    document.getElementById('heroEmoji').textContent=sp.emoji;
+    document.querySelectorAll('[data-sea]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sea===(state.season||'auto')?'true':'false'));
+    document.getElementById('fxCheck').checked=!!state.fx;
+    buildFall(season);
+  }
+  document.querySelectorAll('[data-sea]').forEach(b=>b.addEventListener('click',()=>{ state.season=b.dataset.sea; save(); applySeason(); }));
+  document.getElementById('fxCheck').addEventListener('change',function(){ state.fx=this.checked; save(); applySeason(); });
+  // resolve any CSS colour (incl. color-mix) to something canvas understands
+  function cssColor(expr){
+    const d=document.createElement('div'); d.style.color=expr; d.style.display='none';
+    document.body.appendChild(d); const c=getComputedStyle(d).color; d.remove(); return c;
+  }
+
+  /* ---------- image export ---------- */
+  let imgMode='both';
+  const FONT="Yomogi,'Klee One','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif";
+  function effMode(){ return (imgMode==='both' && prevKey(todayKey())) ? 'both' : 'today'; }
+  function syncShare(){
+    const has=!!prevKey(todayKey()); const m=effMode();
+    document.querySelectorAll('[data-img]').forEach(b=>{
+      b.setAttribute('aria-pressed', b.dataset.img===m?'true':'false');
+      if(b.dataset.img==='both') b.disabled=!has;
+    });
+  }
+  document.querySelectorAll('[data-img]').forEach(b=>b.addEventListener('click',()=>{ imgMode=b.dataset.img; syncShare(); }));
+
+  function drawStamp(ctx,cx,cy,size,color){
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(-8*Math.PI/180); ctx.scale(size/40,size/40); ctx.translate(-20,-20);
+    ctx.strokeStyle=color; ctx.lineWidth=2.4; ctx.lineCap='round';
+    for(let a=0;a<360;a+=45){
+      ctx.save(); ctx.translate(20,20); ctx.rotate(a*Math.PI/180); ctx.translate(-20,-20);
+      ctx.beginPath(); ctx.arc(20,9.5,6,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    }
+    ctx.lineWidth=2.2;
+    ctx.stroke(new Path2D('M20 20c0-2 2.6-2.6 3.4-.8.9 2-1.2 4.2-3.6 3.6-2.9-.7-3.6-4.6-1.2-6.8'));
+    ctx.restore();
+  }
+  function rrect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  async function buildBlob(){
+    try{ await Promise.race([document.fonts.load('30px Yomogi','朝活To Do List'), new Promise(r=>setTimeout(r,1500))]); }catch(e){}
+    const tk=todayKey(), pk=prevKey(tk);
+    const pages=[{k:tk,list:todayList()}];
+    if(effMode()==='both') pages.push({k:pk,list:state.days[pk]});   // left = today, right = yesterday (same as the app)
+    const cs=currentSeason();
+    const C={a:cssColor('var(--a)'),bg:cssColor('var(--s-bg)'),paper:cssColor('var(--s-paper)'),ink:cssColor('var(--s-ink)'),
+      row:cssColor('var(--s-row)'),rule:cssColor('var(--s-rule)'),pl:cssColor('var(--s-pl)'),
+      sub:cssColor('color-mix(in srgb,var(--s-ink) 62%,var(--s-paper))')};
+    const W=520, PADX=22, HEAD=86, ROW=62, GAP=14, M=14, S=2;
+    const rows=Math.max(MIN_ROWS,...pages.map(p=>p.list.length));
+    const PH=HEAD+rows*ROW+22;
+    const CW=M*2+pages.length*W+(pages.length-1)*GAP, CH=M*2+PH;
+    const c=document.createElement('canvas'); c.width=CW*S; c.height=CH*S;
+    const ctx=c.getContext('2d'); ctx.scale(S,S);
+    ctx.fillStyle=C.bg; ctx.fillRect(0,0,CW,CH);
+    pages.forEach((pg,pi)=>{
+      const x0=M+pi*(W+GAP), y0=M;
+      ctx.fillStyle=C.paper; rrect(ctx,x0,y0,W,PH,22); ctx.fill();
+      ctx.textBaseline='alphabetic'; ctx.fillStyle=C.ink;
+      ctx.font='38px '+FONT; ctx.textAlign='left'; ctx.fillText('To Do List',x0+PADX,y0+50);
+      const tw=ctx.measureText('To Do List').width; ctx.font='30px sans-serif'; ctx.fillText(SEASONS[cs].emoji,x0+PADX+tw+10,y0+50);
+      ctx.font='28px '+FONT; ctx.textAlign='right'; ctx.fillText(label(pg.k),x0+W-PADX,y0+48);
+      ctx.textAlign='left';
+      for(let i=0;i<rows;i++){
+        const it=pg.list[i]; const top=y0+HEAD+i*ROW, bot=top+ROW, mid=top+ROW/2;
+        // dashed number divider
+        ctx.save(); ctx.setLineDash([4,5]); ctx.strokeStyle=C.rule; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.moveTo(x0+PADX+30,top+8); ctx.lineTo(x0+PADX+30,bot); ctx.stroke(); ctx.restore();
+        // number
+        ctx.fillStyle=C.ink; ctx.font='18px '+FONT; ctx.textAlign='center';
+        ctx.fillText(String(i+1),x0+PADX+14,mid+6); ctx.textAlign='left';
+        // row line
+        ctx.strokeStyle=C.row; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(x0+PADX,bot); ctx.lineTo(x0+W-PADX,bot); ctx.stroke();
+        const bx=x0+W-PADX-20;
+        if(!it || !it.done){
+          ctx.strokeStyle=C.pl; ctx.lineWidth=2.5; ctx.strokeRect(bx-8,mid-8,16,16);
+        }
+        if(it){
+          const tx=x0+PADX+44, maxW=W-PADX*2-44-48;
+          let fs=30; ctx.font=fs+'px '+FONT;
+          while(ctx.measureText(it.text).width>maxW && fs>18){ fs-=2; ctx.font=fs+'px '+FONT; }
+          let txt=it.text;
+          while(ctx.measureText(txt).width>maxW && txt.length>1) txt=txt.slice(0,-1);
+          if(txt!==it.text) txt=txt.slice(0,-1)+'…';
+          ctx.fillStyle=it.done?C.sub:C.ink; ctx.fillText(txt,tx,mid+10);
+          if(it.done){
+            const w=ctx.measureText(txt).width;
+            ctx.strokeStyle=C.ink; ctx.globalAlpha=.85; ctx.lineWidth=2.6; ctx.lineCap='round';
+            ctx.beginPath(); ctx.moveTo(tx-5,mid+3); ctx.lineTo(tx+w+5,mid-1); ctx.stroke(); ctx.globalAlpha=1;
+            drawStamp(ctx,bx,mid,38,C.a);
+          }
+        }
+      }
+    });
+    return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('toBlob')),'image/png'));
+  }
+
+  let overlayUrl=null;
+  function showOverlay(blob){
+    closeOverlay();
+    overlayUrl=URL.createObjectURL(blob);
+    const o=document.createElement('div'); o.className='overlay'; o.id='overlay'; o.setAttribute('role','dialog'); o.setAttribute('aria-label','画像プレビュー');
+    o.innerHTML='<img alt="今日のToDoリスト画像" src="'+overlayUrl+'"><p>この環境では自動コピーができませんでした。<br>画像を長押しして「コピー」か「画像を保存」を選んでください。</p><button class="add" type="button" id="closeOv">閉じる</button>';
+    document.body.appendChild(o);
+    document.getElementById('closeOv').addEventListener('click',closeOverlay);
+    document.getElementById('closeOv').focus();
+  }
+  function closeOverlay(){
+    const o=document.getElementById('overlay'); if(o) o.remove();
+    if(overlayUrl){ URL.revokeObjectURL(overlayUrl); overlayUrl=null; }
+  }
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeOverlay(); });
+
+  document.getElementById('copyImg').addEventListener('click',async()=>{
+    const blobP=buildBlob();
+    try{
+      if(!navigator.clipboard || !window.ClipboardItem) throw new Error('unsupported');
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blobP})]);
+      toast('画像をコピーしました。Discordに貼り付けてください');
+    }catch(err){
+      try{ showOverlay(await blobP); }catch(e2){ toast('画像を作れませんでした'); }
+    }
+  });
+  document.getElementById('shareImg').addEventListener('click',async()=>{
+    let blob; try{ blob=await buildBlob(); }catch(e){ toast('画像を作れませんでした'); return; }
+    const file=new File([blob],'oni-todo-'+todayKey()+'.png',{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file]}); }
+      catch(err){ if(err && err.name!=='AbortError') showOverlay(blob); }
+    } else showOverlay(blob);
+  });
+
+  /* ---------- backup / restore ---------- */
+  function backupJSON(){
+    return JSON.stringify({app:'oni-task',version:1,exportedAt:new Date().toISOString(),registered:state.registered,days:state.days});
+  }
+  const bkText=document.getElementById('bkText');
+  document.getElementById('bkCopy').addEventListener('click',async()=>{
+    const txt=backupJSON();
+    try{
+      if(!navigator.clipboard) throw new Error('no clipboard');
+      await navigator.clipboard.writeText(txt);
+      toast('バックアップをコピーしました。メモなどに貼って保管してください');
+    }catch(e){
+      bkText.value=txt; bkText.focus(); bkText.select();
+      toast('下の枠に出しました。全選択してコピーしてください');
+    }
+  });
+  document.getElementById('bkFile').addEventListener('click',()=>{
+    const txt=backupJSON();
+    try{
+      const blob=new Blob([txt],{type:'application/json'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='oni-task-backup-'+todayKey()+'.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),4000);
+      toast('ファイルに保存しました');
+    }catch(e){ bkText.value=txt; toast('保存できないため下の枠に出しました。コピーしてください'); }
+  });
+  document.getElementById('bkPick').addEventListener('change',function(){
+    const f=this.files&&this.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{ bkText.value=String(r.result||''); toast('読み込みました。「復元する」を押してください'); };
+    r.onerror=()=>toast('ファイルを読めませんでした');
+    r.readAsText(f); this.value='';
+  });
+  let restoreArmed=false, restoreTimer=null;
+  const restoreBtn=document.getElementById('bkRestore');
+  function disarm(){ restoreArmed=false; restoreBtn.textContent='復元する'; clearTimeout(restoreTimer); }
+  restoreBtn.addEventListener('click',()=>{
+    let data;
+    try{ data=JSON.parse(bkText.value.trim()); }catch(e){ toast('バックアップの形式が正しくありません'); return; }
+    if(!data || typeof data!=='object' || !Array.isArray(data.registered) || !data.days || typeof data.days!=='object'){
+      toast('バックアップの形式が正しくありません'); return;
+    }
+    if(!restoreArmed){
+      restoreArmed=true; restoreBtn.textContent='今のデータを置き換える？もう一度タップ';
+      restoreTimer=setTimeout(disarm,6000); return;
+    }
+    disarm();
+    const days={};
+    Object.keys(data.days).forEach(k=>{
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(k) || !Array.isArray(data.days[k])) return;
+      days[k]=data.days[k].filter(t=>t && typeof t.text==='string').map(t=>({id:String(t.id||uid()),text:t.text,done:!!t.done}));
+    });
+    state={registered:data.registered.filter(t=>typeof t==='string'),days,offset:0,seeded:true,season:state.season||'auto',fx:state.fx!==false};
+    save(); bkText.value=''; render(); if(view==='stats') renderStats(); syncDayButtons();
+    toast('復元しました');
+  });
+
+  /* ---------- day shift (for trying it out) ---------- */
+  function refresh(){ render(); if(view==='stats') renderStats(); }
+  function syncDayButtons(){ document.getElementById('prevDay').disabled=(state.offset||0)<=0; }
+  document.getElementById('nextDay').addEventListener('click',()=>{
+    state.offset=(state.offset||0)+1; save(); refresh(); syncDayButtons(); toast('日付を1日進めました（動作確認用）');
+  });
+  document.getElementById('prevDay').addEventListener('click',()=>{
+    if((state.offset||0)<=0) return;
+    state.offset-=1; save(); refresh(); syncDayButtons(); toast('日付を1日戻しました');
+  });
+
+  /* ---------- stats ---------- */
+  let view='today', period='week', anchor=null; // anchor: Date inside the shown period
+
+  function startOfWeek(d){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const w=(x.getDay()+6)%7; x.setDate(x.getDate()-w); return x; } // Monday start
+  function addDays(d,n){ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()); x.setDate(x.getDate()+n); return x; }
+
+  function rangeOf(){
+    const a=anchor||dateOf(todayKey());
+    if(period==='week'){ const s=startOfWeek(a); return {start:s,end:addDays(s,6)}; }
+    return {start:new Date(a.getFullYear(),a.getMonth(),1), end:new Date(a.getFullYear(),a.getMonth()+1,0)};
+  }
+  function dayStat(d){
+    const list=state.days[keyOf(d)]||[];
+    return {total:list.length, done:list.filter(t=>t.done).length, list};
+  }
+  function streak(){
+    let d=dateOf(todayKey()), n=0;
+    const hasDone=x=>dayStat(x).done>0;
+    if(!hasDone(d)) d=addDays(d,-1); // today not started yet: count up to yesterday
+    while(hasDone(d)){ n++; d=addDays(d,-1); }
+    return n;
+  }
+  const smallStamp='<svg class="st" viewBox="0 0 40 40" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">'
+    + [0,45,90,135,180,225,270,315].map(a=>'<circle cx="20" cy="9.5" r="6" transform="rotate('+a+' 20 20)"/>').join('')
+    + '<path d="M20 20c0-2 2.6-2.6 3.4-.8.9 2-1.2 4.2-3.6 3.6-2.9-.7-3.6-4.6-1.2-6.8" stroke-width="2.2"/></svg>';
+
+  function renderStats(){
+    const {start,end}=rangeOf();
+    const tk=todayKey(), todayD=dateOf(tk);
+    document.querySelectorAll('[data-period]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.period===period?'true':'false'));
+    const lab = period==='week'
+      ? (start.getMonth()+1)+'/'+start.getDate()+' 〜 '+(end.getMonth()+1)+'/'+end.getDate()
+      : start.getFullYear()+'年'+(start.getMonth()+1)+'月';
+    document.getElementById('rangeLabel').textContent=lab;
+    document.getElementById('rangeNext').disabled = end>=todayD;
+
+    // collect
+    const days=[]; let total=0, done=0, active=0; const counts={};
+    for(let d=new Date(start); d<=end; d=addDays(d,1)){
+      const s=dayStat(d); const k=keyOf(d);
+      days.push({d:new Date(d),k,...s,future:k>tk});
+      total+=s.total; done+=s.done; if(s.done>0) active++;
+      s.list.forEach(t=>{ if(t.done) counts[t.text]=(counts[t.text]||0)+1; });
+    }
+    const rate = total?Math.round(done/total*100):0;
+    let msg, face;
+    if(!total){ msg='まだ記録がありません。今日のタスクを選んで、明日から消し込んでいきましょう。'; face='👹'; }
+    else if(rate>=80){ msg='鬼もびっくりの達成率！この調子で行け。'; face='🔥'; }
+    else if(rate>=50){ msg='まずまずだ。あと一押しで花丸が増えるぞ。'; face='👹'; }
+    else { msg='鬼は見ているぞ…。まずは1つ、花丸を付けよう。'; face='👺'; }
+
+    let h='<div class="oni-says"><span class="face" aria-hidden="true">'+face+'</span><span>'+msg+'</span></div>';
+    h+='<div class="kpis">'
+      +'<div class="kpi"><b>'+rate+'%</b><span>達成率</span></div>'
+      +'<div class="kpi"><b>'+done+'<small style="font-size:.9rem">/'+total+'</small></b><span>完了 / 登録</span></div>'
+      +'<div class="kpi"><b>'+streak()+'日</b><span>連続で花丸</span></div>'
+      +'</div>';
+
+    if(period==='week'){
+      const max=Math.max(4,...days.map(x=>x.total));
+      h+='<div class="card"><h3>日ごとの完了（赤＝完了）</h3><div class="bars">'
+        + days.map(x=>{
+            const hp=x.total?Math.max(6,x.total/max*100):0;
+            const dp=x.total?x.done/x.total*100:0;
+            const wd=WD[x.d.getDay()];
+            const full=x.total>0 && x.done===x.total;
+            return '<div class="bar" style="'+(x.future?'opacity:.4':'')+'">'
+              +(full?smallStamp:'<span class="n">'+(x.total?x.done+'/'+x.total:'')+'</span>')
+              +'<div class="col" style="height:'+hp+'%"><i style="height:'+dp+'%"></i></div>'
+              +'<span class="d'+(x.d.getDay()===0?' sun':'')+'">'+wd+'</span></div>';
+          }).join('')+'</div></div>';
+    } else {
+      const lead=(start.getDay()+6)%7;
+      let cells='';
+      ['月','火','水','木','金','土','日'].forEach(w=>cells+='<div class="wd">'+w+'</div>');
+      for(let i=0;i<lead;i++) cells+='<div class="cell blank"></div>';
+      days.forEach(x=>{
+        const full=x.total>0&&x.done===x.total;
+        const tint = x.total&&!full&&x.done>0 ? 'background:color-mix(in srgb, var(--oni) '+Math.round(8+x.done/x.total*22)+'%, var(--chip));' : '';
+        cells+='<div class="cell'+(x.future?' future':'')+(x.k===tk?' today':'')+'" style="'+tint+'">'
+          +'<span class="dn">'+x.d.getDate()+'</span>'
+          +(full?smallStamp:'<span></span>')
+          +'<span class="fr">'+(x.total?x.done+'/'+x.total:'')+'</span></div>';
+      });
+      h+='<div class="card"><h3>花丸カレンダー（全部できた日に花丸）</h3><div class="cal">'+cells+'</div></div>';
+    }
+
+    const rank=Object.entries(counts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ja')).slice(0,5);
+    h+='<div class="card"><h3>よく続けたタスク</h3>';
+    if(!rank.length) h+='<p class="none">完了したタスクがまだありません。</p>';
+    else {
+      const top=rank[0][1];
+      h+='<ol class="rank">'+rank.map((r,i)=>'<li><span>'+(i+1)+'</span><span>'+esc(r[0])+'</span><span class="cnt">'+r[1]+'回</span><span class="meter"><i style="width:'+Math.round(r[1]/top*100)+'%"></i></span></li>').join('')+'</ol>';
+    }
+    h+='</div>';
+    h+='<p class="none">記録のある日：'+active+'日 / 期間'+days.length+'日</p>';
+    document.getElementById('statsBody').innerHTML=h;
+  }
+
+  function setView(v){
+    view=v;
+    document.getElementById('viewToday').hidden=(v!=='today');
+    document.getElementById('viewStats').hidden=(v!=='stats');
+    document.getElementById('tabToday').setAttribute('aria-selected',v==='today'?'true':'false');
+    document.getElementById('tabStats').setAttribute('aria-selected',v==='stats'?'true':'false');
+    if(v==='stats'){ anchor=dateOf(todayKey()); renderStats(); } else render();
+    window.scrollTo(0,0);
+  }
+  document.getElementById('tabToday').addEventListener('click',()=>setView('today'));
+  document.getElementById('tabStats').addEventListener('click',()=>setView('stats'));
+  document.querySelectorAll('[data-period]').forEach(b=>b.addEventListener('click',()=>{
+    period=b.dataset.period; anchor=dateOf(todayKey()); renderStats();
+  }));
+  function shift(dir){
+    const a=anchor||dateOf(todayKey());
+    anchor = period==='week' ? addDays(a,7*dir) : new Date(a.getFullYear(),a.getMonth()+dir,1);
+    renderStats();
+  }
+  document.getElementById('rangePrev').addEventListener('click',()=>shift(-1));
+  document.getElementById('rangeNext').addEventListener('click',()=>shift(1));
+
+  syncDayButtons();
+  render();
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+    try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+  });
+}
+</script>
+</body>
+</html>
