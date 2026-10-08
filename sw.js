@@ -1,6 +1,6 @@
 // 鬼のタスク管理 - Service Worker
 // 更新したら CACHE のバージョン番号を上げてください（古いキャッシュが入れ替わります）
-const CACHE = 'oni-task-v2';
+const CACHE = 'oni-task-v5';
 const CORE = [
   './',
   './index.html',

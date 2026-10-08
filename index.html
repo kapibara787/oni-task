@@ -93,6 +93,7 @@ header .date{margin-left:auto;font-family:var(--hand);font-size:1.05rem;color:va
 .page-head b{font-family:var(--hand);font-size:clamp(.95rem,4.4vw,1.35rem);font-weight:400;letter-spacing:.01em}
 .page-head span{font-family:var(--hand);font-size:clamp(.72rem,3.1vw,.95rem);white-space:nowrap}
 .page-label{font-size:.68rem;color:var(--paper-sub);padding:0 4px 6px}
+.page-writer{font-family:var(--hand);font-size:.95rem;padding:0 4px 6px;margin-top:-2px;overflow-wrap:anywhere}
 
 .rows{margin:0;padding:0;list-style:none}
 .row{
@@ -220,7 +221,8 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
 .link:disabled{opacity:.35;cursor:default;text-decoration:none}
 /* share */
 .sharebar{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.sharebtns{display:flex;gap:8px}
+.sharebtns{display:flex;gap:8px;flex:1 1 100%}
+.sharebtns .add{flex:1;padding:0 8px;font-size:.9rem}
 .add.ghost{background:var(--chip);color:var(--oni);border:1.5px solid var(--oni)}
 .seg button:disabled{opacity:.4;cursor:default}
 .overlay{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.78);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
@@ -294,6 +296,12 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
       <details class="fold" id="foldMore">
         <summary>✏️ 自由に書く・登録リストを編集</summary>
         <div class="fold-body">
+          <div class="sub"><h3>記入者の名前</h3></div>
+          <div class="free">
+            <input type="text" id="writerIn" placeholder="例：カピバラ" maxlength="20" autocomplete="off" aria-label="記入者の名前">
+          </div>
+          <p class="hint" style="margin:6px 0 0">ページと画像に「記入：名前」と入ります。空欄なら表示しません。</p>
+
           <div class="sub"><h3>季節のデザイン</h3></div>
           <div class="seg five" role="group" aria-label="季節を選ぶ">
             <button type="button" data-sea="auto" aria-pressed="true">自動</button>
@@ -394,13 +402,14 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
     let s=null;
     try{ const raw=localStorage.getItem(KEY); if(raw) s=JSON.parse(raw); }catch(e){}
     if(!s || typeof s!=='object'){
-      s={registered:DEFAULT_REG.slice(), days:{}, offset:0, seeded:false, season:'auto', fx:true};
+      s={registered:DEFAULT_REG.slice(), days:{}, offset:0, seeded:false, season:'auto', fx:true, writer:''};
     }
     if(!Array.isArray(s.registered)) s.registered=DEFAULT_REG.slice();
     if(!s.days) s.days={};
     if(!s.offset) s.offset=0;
     if(!s.season) s.season='auto';
     if(s.fx===undefined) s.fx=true;
+    if(typeof s.writer!=='string') s.writer='';
     return s;
   }
   function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
@@ -457,7 +466,8 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
     for(let i=0;i<total;i++) rows+=rowHTML(list[i],i,kind);
     const doneN=list.filter(t=>t.done).length;
     let head='<div class="page-head"><b>To Do List</b><span>'+(k?label(k):'')+'</span></div>'
-      + '<div class="page-label">'+(kind==='today'?'今日':'昨日（やったものをタップ）')+'</div>';
+      + '<div class="page-label">'+(kind==='today'?'今日':'昨日（やったものをタップ）')+'</div>'
+      + ((state.writer||'').trim() ? '<div class="page-writer">記入：'+esc((state.writer||'').trim())+'</div>' : '');
     let body;
     if(kind==='yesterday' && !k){
       body='<div class="empty-note">前日のタスクはまだありません。今日のタスクを選んで、明日ここで消し込みましょう。</div><ul class="rows" aria-hidden="true">'+rows+'</ul>';
@@ -474,7 +484,7 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
     const today=todayList();
     const prev=pk?state.days[pk]:[];
     // left = today, right = yesterday
-    document.getElementById('spread').innerHTML = pageHTML('today',tk,today)+pageHTML('yesterday',pk,prev);
+    document.getElementById('spread').innerHTML = pageHTML('yesterday',pk,prev)+pageHTML('today',tk,today);
 
     const chips=document.getElementById('chips');
     chips.innerHTML=state.registered.map((t,i)=>{
@@ -548,6 +558,11 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
 
   document.getElementById('editReg').addEventListener('click',()=>{ editMode=!editMode; render(); });
   document.getElementById('foldMore').addEventListener('toggle',function(){ if(!this.open && editMode){ editMode=false; render(); } });
+  /* ---------- writer name ---------- */
+  const writerIn=document.getElementById('writerIn');
+  writerIn.value=state.writer||'';
+  writerIn.addEventListener('input',()=>{ state.writer=writerIn.value; save(); render(); });
+
   /* ---------- seasons ---------- */
   const SEASONS={
     spring:{kanji:'春',name:'桜の季節',msg:'春風に乗って、ひとつずつ前へ。',emoji:'🌸',fall:['🌸','🌸','🌷'],dir:'down'},
@@ -633,8 +648,9 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
   async function buildBlob(){
     try{ await Promise.race([document.fonts.load('30px Yomogi','朝活To Do List'), new Promise(r=>setTimeout(r,1500))]); }catch(e){}
     const tk=todayKey(), pk=prevKey(tk);
-    const pages=[{k:tk,list:todayList()}];
-    if(effMode()==='both') pages.push({k:pk,list:state.days[pk]});   // left = today, right = yesterday (same as the app)
+    // left = yesterday, right = today (same as the app)
+    const pages = effMode()==='both' ? [{k:pk,list:state.days[pk]},{k:tk,list:todayList()}] : [{k:tk,list:todayList()}];
+    const writer=(state.writer||'').trim();
     const cs=currentSeason();
     const C={a:cssColor('var(--a)'),bg:cssColor('var(--s-bg)'),paper:cssColor('var(--s-paper)'),ink:cssColor('var(--s-ink)'),
       row:cssColor('var(--s-row)'),rule:cssColor('var(--s-rule)'),pl:cssColor('var(--s-pl)'),
@@ -653,6 +669,7 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
       ctx.font='38px '+FONT; ctx.textAlign='left'; ctx.fillText('To Do List',x0+PADX,y0+50);
       const tw=ctx.measureText('To Do List').width; ctx.font='30px sans-serif'; ctx.fillText(SEASONS[cs].emoji,x0+PADX+tw+10,y0+50);
       ctx.font='28px '+FONT; ctx.textAlign='right'; ctx.fillText(label(pg.k),x0+W-PADX,y0+48);
+      if(writer){ ctx.font='22px '+FONT; ctx.fillStyle=C.sub; ctx.fillText('記入：'+writer,x0+W-PADX,y0+76); ctx.fillStyle=C.ink; }
       ctx.textAlign='left';
       for(let i=0;i<rows;i++){
         const it=pg.list[i]; const top=y0+HEAD+i*ROW, bot=top+ROW, mid=top+ROW/2;
@@ -776,10 +793,13 @@ footer{margin-top:18px;display:flex;justify-content:space-between;gap:8px;align-
       if(!/^\d{4}-\d{2}-\d{2}$/.test(k) || !Array.isArray(data.days[k])) return;
       days[k]=data.days[k].filter(t=>t && typeof t.text==='string').map(t=>({id:String(t.id||uid()),text:t.text,done:!!t.done}));
     });
-    state={registered:data.registered.filter(t=>typeof t==='string'),days,offset:0,seeded:true,season:state.season||'auto',fx:state.fx!==false};
+    state={registered:data.registered.filter(t=>typeof t==='string'),days,offset:0,seeded:true,season:state.season||'auto',fx:state.fx!==false,writer:state.writer||''};
     save(); bkText.value=''; render(); if(view==='stats') renderStats(); syncDayButtons();
     toast('復元しました');
   });
+
+  // remove any webhook URL saved by an earlier version
+  try{ localStorage.removeItem('oni-task-discord-v1'); }catch(e){}
 
   /* ---------- day shift (for trying it out) ---------- */
   function refresh(){ render(); if(view==='stats') renderStats(); }
